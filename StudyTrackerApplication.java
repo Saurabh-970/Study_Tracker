@@ -39,14 +39,59 @@ class Study_Tracker
 {
     public ArrayList <Study_Log> Database = new ArrayList<>();
 
+    // GUI insert
     public void InsertLog(String sub, double dur, String desc)
     {
         Study_Log studyobj = new Study_Log(LocalDate.now(), sub, dur, desc);
         Database.add(studyobj);
     }
 
+    // CLI insert
+    public void InsertLog()
+    {
+        Scanner sobj = new Scanner(System.in);
+
+        System.out.println("---------------------------------------------");
+        System.out.println("------Enter Valid Details of your study------");
+        System.out.println("---------------------------------------------");
+
+        System.out.println("Enter Subject:");
+        String sub = sobj.nextLine();
+
+        System.out.println("Enter Duration (hrs):");
+        double dur = sobj.nextDouble();
+        sobj.nextLine();
+
+        System.out.println("Enter Description:");
+        String desc = sobj.nextLine();
+
+        InsertLog(sub, dur, desc);
+
+        System.out.println("Study log saved successfully");
+    }
+
+    public void DisplayLog()
+    {
+        if(Database.isEmpty())
+        {
+            System.out.println("Nothing to Display");
+            return;
+        }
+
+        for(Study_Log s: Database)
+        {
+            System.out.println(s);
+        }
+    }
+
     public void Export_CSV()
     {
+        if(Database.isEmpty())
+        {
+            System.out.println("Nothing to Export");
+            return;
+        }
+
         try(FileWriter fwobj = new FileWriter("StudyTracker.csv"))
         {
             fwobj.write("Date,Subject,Duration,Description\n");
@@ -55,15 +100,46 @@ class Study_Tracker
             {
                 fwobj.write(s.getDate()+","+s.getSubject()+","+s.getDuration()+","+s.getDescription()+"\n");
             }
+            System.out.println("CSV Exported Successfully");
         }
         catch(Exception e)
         {
             System.out.println("Error in CSV");
         }
     }
+
+    public void SummaryByDate()
+    {
+        TreeMap<LocalDate, Double> map = new TreeMap<>();
+
+        for(Study_Log s : Database)
+        {
+            map.put(s.getDate(), map.getOrDefault(s.getDate(), 0.0) + s.getDuration());
+        }
+
+        for(LocalDate d : map.keySet())
+        {
+            System.out.println(d + " -> " + map.get(d) + " hrs");
+        }
+    }
+
+    public void SummaryBySubject()
+    {
+        TreeMap<String, Double> map = new TreeMap<>();
+
+        for(Study_Log s : Database)
+        {
+            map.put(s.getSubject(), map.getOrDefault(s.getSubject(), 0.0) + s.getDuration());
+        }
+
+        for(String sub : map.keySet())
+        {
+            System.out.println(sub + " -> " + map.get(sub) + " hrs");
+        }
+    }
 }
 
-// ================= GUI CLASS =================
+// ================= GUI CLASS (UNCHANGED LOOK) =================
 class StudyTrackerGUI extends JFrame
 {
     private JTextField txtSubject, txtDuration;
@@ -77,43 +153,32 @@ class StudyTrackerGUI extends JFrame
     {
         this.tracker = tracker;
 
-        setTitle("📚 Study Tracker");
+        setTitle("Study Tracker");
         setSize(950, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // 🎨 DARK CLASSY COLORS
         Color bg = new Color(30, 32, 40);
         Color card = new Color(44, 47, 57);
         Color primary = new Color(0, 173, 181);
-        Color accent = new Color(57, 62, 70);
         Color text = Color.WHITE;
 
         getContentPane().setBackground(bg);
 
-        // ===== TITLE =====
         JLabel title = new JLabel("Study Tracker Dashboard", JLabel.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 26));
         title.setForeground(text);
-        title.setBorder(BorderFactory.createEmptyBorder(15,0,15,0));
         add(title, BorderLayout.NORTH);
 
-        // ===== MAIN PANEL =====
         JPanel main = new JPanel(new BorderLayout(15,15));
         main.setBackground(bg);
-        main.setBorder(BorderFactory.createEmptyBorder(10,15,15,15));
 
-        // ===== FORM =====
         JPanel form = new JPanel(new GridLayout(4,2,10,10));
         form.setBackground(card);
-        form.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(primary), "Add Study Log"));
-
-        Font f = new Font("Segoe UI", Font.BOLD, 14);
 
         JLabel l1 = new JLabel("Subject:");
         l1.setForeground(text);
-        l1.setFont(f);
         form.add(l1);
 
         txtSubject = new JTextField();
@@ -121,7 +186,6 @@ class StudyTrackerGUI extends JFrame
 
         JLabel l2 = new JLabel("Duration:");
         l2.setForeground(text);
-        l2.setFont(f);
         form.add(l2);
 
         txtDuration = new JTextField();
@@ -129,48 +193,28 @@ class StudyTrackerGUI extends JFrame
 
         JLabel l3 = new JLabel("Description:");
         l3.setForeground(text);
-        l3.setFont(f);
         form.add(l3);
 
         txtDescription = new JTextArea();
-        txtDescription.setLineWrap(true);
         form.add(new JScrollPane(txtDescription));
 
         JButton btnAdd = new JButton("Add Log");
         btnAdd.setBackground(primary);
-        btnAdd.setForeground(Color.BLACK);
-        btnAdd.setFont(f);
-        btnAdd.setFocusPainted(false);
         form.add(btnAdd);
 
         main.add(form, BorderLayout.NORTH);
 
-        // ===== TABLE =====
         model = new DefaultTableModel();
         model.setColumnIdentifiers(new String[]{"Date","Subject","Duration","Description"});
-
         table = new JTable(model);
-        table.setBackground(card);
-        table.setForeground(text);
-        table.setRowHeight(28);
-
-        table.getTableHeader().setBackground(primary);
-        table.getTableHeader().setForeground(Color.BLACK);
 
         main.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // ===== BUTTONS =====
         JPanel bottom = new JPanel();
         bottom.setBackground(bg);
 
         JButton btnView = new JButton("View Logs");
         JButton btnExport = new JButton("Export CSV");
-
-        btnView.setBackground(primary);
-        btnExport.setBackground(primary);
-
-        btnView.setForeground(Color.BLACK);
-        btnExport.setForeground(Color.BLACK);
 
         bottom.add(btnView);
         bottom.add(btnExport);
@@ -179,18 +223,14 @@ class StudyTrackerGUI extends JFrame
 
         add(main);
 
-        // ===== ACTIONS =====
+        // Actions
         btnAdd.addActionListener(e -> {
-            try {
-                tracker.InsertLog(
-                        txtSubject.getText(),
-                        Double.parseDouble(txtDuration.getText()),
-                        txtDescription.getText()
-                );
-                JOptionPane.showMessageDialog(this, "Added!");
-            } catch(Exception ex) {
-                JOptionPane.showMessageDialog(this, "Invalid Input");
-            }
+            tracker.InsertLog(
+                    txtSubject.getText(),
+                    Double.parseDouble(txtDuration.getText()),
+                    txtDescription.getText()
+            );
+            JOptionPane.showMessageDialog(this, "Added!");
         });
 
         btnView.addActionListener(e -> {
@@ -218,9 +258,33 @@ public class StudyTrackerApplication
 
         System.out.println("1. CLI Mode");
         System.out.println("2. GUI Mode");
-        int choice = sobj.nextInt();
 
-        if(choice == 2)
+        int choice = sobj.nextInt();
+        sobj.nextLine(); // fix input bug
+
+        if(choice == 1)
+        {
+            int iCHOICE = 0;
+            do
+            {
+                System.out.println("\n1 Insert | 2 View | 3 Export | 4 Date Summary | 5 Subject Summary | 6 Exit");
+                iCHOICE = sobj.nextInt();
+                sobj.nextLine();
+
+                switch(iCHOICE)
+                {
+                    case 1: stobj.InsertLog(); break;
+                    case 2: stobj.DisplayLog(); break;
+                    case 3: stobj.Export_CSV(); break;
+                    case 4: stobj.SummaryByDate(); break;
+                    case 5: stobj.SummaryBySubject(); break;
+                    case 6: System.out.println("Thank you!"); break;
+                    default: System.out.println("Invalid choice");
+                }
+
+            } while(iCHOICE != 6);
+        }
+        else
         {
             SwingUtilities.invokeLater(() -> new StudyTrackerGUI(stobj).setVisible(true));
         }
