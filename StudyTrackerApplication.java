@@ -45,16 +45,40 @@ class Study_Tracker
         Database.add(studyobj);
     }
 
+    public void DisplayLog()
+    {
+        if(Database.isEmpty())
+        {
+            System.out.println("Nothing to Display");
+            return;
+        }
+
+        for(Study_Log s: Database)
+        {
+            System.out.println(s);
+        }
+    }
+
     public void Export_CSV()
     {
+        if(Database.isEmpty())
+        {
+            System.out.println("Nothing to Export");
+            return;
+        }
+
         try(FileWriter fwobj = new FileWriter("StudyTracker.csv"))
         {
             fwobj.write("Date,Subject,Duration,Description\n");
 
             for(Study_Log s : Database)
             {
-                fwobj.write(s.getDate()+","+s.getSubject()+","+s.getDuration()+","+s.getDescription()+"\n");
+                fwobj.write(s.getDate()+","+
+                        s.getSubject()+","+
+                        s.getDuration()+","+
+                        s.getDescription()+"\n");
             }
+            System.out.println("CSV Exported");
         }
         catch(Exception e)
         {
@@ -77,133 +101,128 @@ class StudyTrackerGUI extends JFrame
     {
         this.tracker = tracker;
 
-        setTitle("📚 Study Tracker");
-        setSize(950, 650);
+        setTitle("📚 Study Tracker Dashboard");
+        setSize(900, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10,10));
 
-        // 🎨 DARK CLASSY COLORS
-        Color bg = new Color(30, 32, 40);
-        Color card = new Color(44, 47, 57);
-        Color primary = new Color(0, 173, 181);
-        Color accent = new Color(57, 62, 70);
-        Color text = Color.WHITE;
+        // COLORS
+        Color bgColor = new Color(245, 247, 250);
+        Color primary = new Color(52, 152, 219);
+        Color accent = new Color(46, 204, 113);
 
-        getContentPane().setBackground(bg);
+        getContentPane().setBackground(bgColor);
 
-        // ===== TITLE =====
-        JLabel title = new JLabel("Study Tracker Dashboard", JLabel.CENTER);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 26));
-        title.setForeground(text);
-        title.setBorder(BorderFactory.createEmptyBorder(15,0,15,0));
-        add(title, BorderLayout.NORTH);
+        // TOP PANEL
+        JPanel top = new JPanel(new GridLayout(4,2,10,10));
+        top.setBorder(BorderFactory.createTitledBorder("Add Study Log"));
+        top.setBackground(bgColor);
 
-        // ===== MAIN PANEL =====
-        JPanel main = new JPanel(new BorderLayout(15,15));
-        main.setBackground(bg);
-        main.setBorder(BorderFactory.createEmptyBorder(10,15,15,15));
+        Font labelFont = new Font("Segoe UI", Font.BOLD, 14);
 
-        // ===== FORM =====
-        JPanel form = new JPanel(new GridLayout(4,2,10,10));
-        form.setBackground(card);
-        form.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(primary), "Add Study Log"));
-
-        Font f = new Font("Segoe UI", Font.BOLD, 14);
-
-        JLabel l1 = new JLabel("Subject:");
-        l1.setForeground(text);
-        l1.setFont(f);
-        form.add(l1);
+        JLabel lbl1 = new JLabel("Subject:");
+        lbl1.setFont(labelFont);
+        top.add(lbl1);
 
         txtSubject = new JTextField();
-        form.add(txtSubject);
+        top.add(txtSubject);
 
-        JLabel l2 = new JLabel("Duration:");
-        l2.setForeground(text);
-        l2.setFont(f);
-        form.add(l2);
+        JLabel lbl2 = new JLabel("Duration (hrs):");
+        lbl2.setFont(labelFont);
+        top.add(lbl2);
 
         txtDuration = new JTextField();
-        form.add(txtDuration);
+        top.add(txtDuration);
 
-        JLabel l3 = new JLabel("Description:");
-        l3.setForeground(text);
-        l3.setFont(f);
-        form.add(l3);
+        JLabel lbl3 = new JLabel("Description:");
+        lbl3.setFont(labelFont);
+        top.add(lbl3);
 
-        txtDescription = new JTextArea();
+        txtDescription = new JTextArea(2,20);
         txtDescription.setLineWrap(true);
-        form.add(new JScrollPane(txtDescription));
+        top.add(new JScrollPane(txtDescription));
 
-        JButton btnAdd = new JButton("Add Log");
+        JButton btnAdd = new JButton("➕ Add Log");
         btnAdd.setBackground(primary);
-        btnAdd.setForeground(Color.BLACK);
-        btnAdd.setFont(f);
+        btnAdd.setForeground(Color.WHITE);
         btnAdd.setFocusPainted(false);
-        form.add(btnAdd);
+        top.add(btnAdd);
 
-        main.add(form, BorderLayout.NORTH);
+        add(top, BorderLayout.NORTH);
 
-        // ===== TABLE =====
+        // TABLE
         model = new DefaultTableModel();
         model.setColumnIdentifiers(new String[]{"Date","Subject","Duration","Description"});
 
         table = new JTable(model);
-        table.setBackground(card);
-        table.setForeground(text);
-        table.setRowHeight(28);
-
+        table.setRowHeight(25);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
         table.getTableHeader().setBackground(primary);
-        table.getTableHeader().setForeground(Color.BLACK);
+        table.getTableHeader().setForeground(Color.WHITE);
 
-        main.add(new JScrollPane(table), BorderLayout.CENTER);
+        add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // ===== BUTTONS =====
+        // BOTTOM PANEL
         JPanel bottom = new JPanel();
-        bottom.setBackground(bg);
+        bottom.setBackground(bgColor);
 
-        JButton btnView = new JButton("View Logs");
-        JButton btnExport = new JButton("Export CSV");
+        JButton btnView = new JButton("📊 View Logs");
+        JButton btnExport = new JButton("📁 Export CSV");
 
-        btnView.setBackground(primary);
+        btnView.setBackground(accent);
+        btnView.setForeground(Color.WHITE);
         btnExport.setBackground(primary);
+        btnExport.setForeground(Color.WHITE);
 
-        btnView.setForeground(Color.BLACK);
-        btnExport.setForeground(Color.BLACK);
+        btnView.setFocusPainted(false);
+        btnExport.setFocusPainted(false);
 
         bottom.add(btnView);
         bottom.add(btnExport);
 
-        main.add(bottom, BorderLayout.SOUTH);
+        add(bottom, BorderLayout.SOUTH);
 
-        add(main);
+        // ACTIONS
 
-        // ===== ACTIONS =====
         btnAdd.addActionListener(e -> {
             try {
-                tracker.InsertLog(
-                        txtSubject.getText(),
-                        Double.parseDouble(txtDuration.getText()),
-                        txtDescription.getText()
-                );
-                JOptionPane.showMessageDialog(this, "Added!");
-            } catch(Exception ex) {
-                JOptionPane.showMessageDialog(this, "Invalid Input");
+                String sub = txtSubject.getText();
+                double dur = Double.parseDouble(txtDuration.getText());
+                String desc = txtDescription.getText();
+
+                tracker.InsertLog(sub, dur, desc);
+
+                JOptionPane.showMessageDialog(this, "✅ Log Added Successfully");
+
+                txtSubject.setText("");
+                txtDuration.setText("");
+                txtDescription.setText("");
+
+            } catch(Exception ex) 
+            {
+                JOptionPane.showMessageDialog(this, "❌ Invalid Input");
             }
         });
 
         btnView.addActionListener(e -> {
             model.setRowCount(0);
+
             for(Study_Log s : tracker.Database)
             {
-                model.addRow(new Object[]{s.getDate(), s.getSubject(), s.getDuration(), s.getDescription()});
+                model.addRow(new Object[]{
+                        s.getDate(),
+                        s.getSubject(),
+                        s.getDuration(),
+                        s.getDescription()
+                });
             }
         });
 
         btnExport.addActionListener(e -> {
             tracker.Export_CSV();
-            JOptionPane.showMessageDialog(this, "Exported!");
+            JOptionPane.showMessageDialog(this, "📁 CSV Exported Successfully");
         });
     }
 }
@@ -220,9 +239,47 @@ public class StudyTrackerApplication
         System.out.println("2. GUI Mode");
         int choice = sobj.nextInt();
 
-        if(choice == 2)
+        if(choice == 1)
         {
-            SwingUtilities.invokeLater(() -> new StudyTrackerGUI(stobj).setVisible(true));
+            int iCHOICE = 0;
+            do
+            {
+                System.out.println("1 Insert | 2 View | 3 Export | 4 Exit");
+                iCHOICE = sobj.nextInt();
+
+                switch(iCHOICE)
+                {
+                    case 1:
+                        sobj.nextLine();
+                        System.out.println("Subject:");
+                        String sub = sobj.nextLine();
+
+                        System.out.println("Duration:");
+                        double dur = sobj.nextDouble();
+                        sobj.nextLine();
+
+                        System.out.println("Description:");
+                        String desc = sobj.nextLine();
+
+                        stobj.InsertLog(sub, dur, desc);
+                        break;
+
+                    case 2:
+                        stobj.DisplayLog();
+                        break;
+
+                    case 3:
+                        stobj.Export_CSV();
+                        break;
+                }
+
+            } while(iCHOICE != 4);
+        }
+        else
+        {
+            SwingUtilities.invokeLater(() -> {
+                new StudyTrackerGUI(stobj).setVisible(true);
+            });
         }
     }
 }
