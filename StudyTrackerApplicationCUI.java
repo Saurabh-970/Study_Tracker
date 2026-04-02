@@ -1,10 +1,12 @@
 import java.util.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-
 import java.io.*;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+
+// ================= MODEL CLASS =================
 class Study_Log
 {
     private LocalDate Date;
@@ -20,39 +22,31 @@ class Study_Log
         this.Description = d;
     }
 
-    public LocalDate getDate()
-    {
-        return this.Date;
-    }
-
-    public String getSubject()
-    {
-        return this.Subject;
-    }
-
-    public double getDuration()
-    {
-        return this.Duration;
-    }
-
-    public String getDescription()
-    {
-        return this.Description;
-    }
+    public LocalDate getDate() { return this.Date; }
+    public String getSubject() { return this.Subject; }
+    public double getDuration() { return this.Duration; }
+    public String getDescription() { return this.Description; }
 
     @Override
     public String toString()
     {
         return Date+" | "+Subject+" | "+Duration+" | "+Description;
     }
-    
 }
 
+// ================= SERVICE CLASS =================
 class Study_Tracker
 {
-    public ArrayList <Study_Log> Database = new ArrayList<Study_Log>();
+    public ArrayList <Study_Log> Database = new ArrayList<>();
 
+    // GUI insert
+    public void InsertLog(String sub, double dur, String desc)
+    {
+        Study_Log studyobj = new Study_Log(LocalDate.now(), sub, dur, desc);
+        Database.add(studyobj);
+    }
 
+    // CLI insert
     public void InsertLog()
     {
         Scanner sobj = new Scanner(System.in);
@@ -61,243 +55,238 @@ class Study_Tracker
         System.out.println("------Enter Valid Details of your study------");
         System.out.println("---------------------------------------------");
 
-        LocalDate Dateobj = LocalDate.now();
-
-        System.out.println("Please enter the name of subject like C/C++/java/python : ");
+        System.out.println("Enter Subject:");
         String sub = sobj.nextLine();
 
-        System.out.println("Enter the time period of your study in hrs");
+        System.out.println("Enter Duration (hrs):");
         double dur = sobj.nextDouble();
-
         sobj.nextLine();
 
-        System.out.println("Enter the description of what you are studying ");
+        System.out.println("Enter Description:");
         String desc = sobj.nextLine();
 
-        Study_Log studyobj = new Study_Log(Dateobj , sub , dur , desc);
-        Database.add(studyobj);
+        InsertLog(sub, dur, desc);
 
         System.out.println("Study log saved successfully");
-        System.out.println("---------------------------------------------");
     }
-
 
     public void DisplayLog()
     {
-        System.out.println("---------------------------------------------");
-        System.out.println("---Log Report of Study Tracker Application---");
-        System.out.println("---------------------------------------------");
-
         if(Database.isEmpty())
         {
-            System.out.println("---------------------------------------------");
-            System.out.println("--------- -----Nothing to Display------------");
-            System.out.println("---------------------------------------------");
+            System.out.println("Nothing to Display");
             return;
         }
-
 
         for(Study_Log s: Database)
         {
             System.out.println(s);
         }
-        System.out.println("---------------------------------------------");
-
     }
 
     public void Export_CSV()
     {
-        
         if(Database.isEmpty())
         {
-            System.out.println("---------------------------------------------");
-            System.out.println("--------- -----Nothing to Display------------");
-            System.out.println("---------------------------------------------");
+            System.out.println("Nothing to Export");
             return;
         }
 
-        String FileName =  "StudyTracker.csv";
-
-        try(FileWriter fwobj = new FileWriter(FileName))
+        try(FileWriter fwobj = new FileWriter("StudyTracker.csv"))
         {
-            fwobj.write("Data , Subject , Duration ,Description\n");
+            fwobj.write("Date,Subject,Duration,Description\n");
 
             for(Study_Log s : Database)
             {
-                fwobj.write(s.getDate()+","+
-                            s.getSubject().replace(","," ")+","+
-                            s.getDuration()+","+
-                            s.getDescription().replace(","," ")+"\n");
-
+                fwobj.write(s.getDate()+","+s.getSubject()+","+s.getDuration()+","+s.getDescription()+"\n");
             }
-            System.out.println("Data gets exported in csv : "+FileName);
+            System.out.println("CSV Exported Successfully");
         }
-        catch(Exception eobj)
+        catch(Exception e)
         {
-            System.out.println("Exception occured in CSV handling");
+            System.out.println("Error in CSV");
         }
-
-
     }
 
     public void SummaryByDate()
     {
-         System.out.println("---------------------------------------------");
-         if(Database.isEmpty())
-         {
-            System.out.println("---Nothing to Display as database is empty---");
-            System.out.println("---------------------------------------------");
+        TreeMap<LocalDate, Double> map = new TreeMap<>();
 
-            return;
-         }
-
-        System.out.println("----Summary of Dates by study tracker-----");
-        System.out.println("---------------------------------------------");
-        TreeMap <LocalDate , Double>tobj = new TreeMap<LocalDate, Double>();
-
-        LocalDate lobj = null;
-        Double d = 0.0, old = 0.0;
-        for(Study_Log sobj : Database)
+        for(Study_Log s : Database)
         {
-            lobj = sobj.getDate();
-            d = sobj.getDuration();
-
-            if(tobj.containsKey(lobj))
-            {
-                old = tobj.get(lobj);
-                tobj.put(lobj,d+old); // old value + new updated study of hrs
-            }
-            else
-            {
-                tobj.put(lobj,d);
-            }
-
+            map.put(s.getDate(), map.getOrDefault(s.getDate(), 0.0) + s.getDuration());
         }
 
-        //Display the details as per date
-        for(LocalDate ld : tobj.keySet())
+        for(LocalDate d : map.keySet())
         {
-            System.out.println("Date : "+ld+"Total study duration : "+tobj.get(ld));
+            System.out.println(d + " -> " + map.get(d) + " hrs");
         }
-         System.out.println("---------------------------------------------");
-
     }
-
-    
 
     public void SummaryBySubject()
     {
-         System.out.println("---------------------------------------------");
-         if(Database.isEmpty())
-         {
-            System.out.println("---Nothing to Display as database is empty---");
-            System.out.println("---------------------------------------------");
+        TreeMap<String, Double> map = new TreeMap<>();
 
-            return;
-         }
-
-        System.out.println("----Summary of Subjects by study tracker-----");
-        System.out.println("---------------------------------------------");
-        TreeMap <String , Double>tobj = new TreeMap<String, Double>();
-
-        String s = null;
-        Double d = 0.0, old = 0.0;
-        for(Study_Log sobj : Database)
+        for(Study_Log s : Database)
         {
-            s = sobj.getSubject();
-            d = sobj.getDuration();
-
-            if(tobj.containsKey(s))
-            {
-                old = tobj.get(s);
-                tobj.put(s,d+old); // old value + new updated study of hrs
-            }
-            else
-            {
-                tobj.put(s,d);
-            }
-
+            map.put(s.getSubject(), map.getOrDefault(s.getSubject(), 0.0) + s.getDuration());
         }
 
-        //Display the details as per subject 
-        for(String str : tobj.keySet())
+        for(String sub : map.keySet())
         {
-            System.out.println("Subject : "+str+" Total study duration : "+tobj.get(str));
+            System.out.println(sub + " -> " + map.get(sub) + " hrs");
         }
-         System.out.println("---------------------------------------------");
-
     }
-    
 }
 
-class StudyTrackerApplicationCUI
+// ================= GUI CLASS (UNCHANGED LOOK) =================
+class StudyTrackerGUI extends JFrame
 {
-    public static void main(String A[]) 
+    private JTextField txtSubject, txtDuration;
+    private JTextArea txtDescription;
+    private JTable table;
+    private DefaultTableModel model;
+
+    private Study_Tracker tracker;
+
+    public StudyTrackerGUI(Study_Tracker tracker)
+    {
+        this.tracker = tracker;
+
+        setTitle("Study Tracker");
+        setSize(950, 650);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        Color bg = new Color(30, 32, 40);
+        Color card = new Color(44, 47, 57);
+        Color primary = new Color(0, 173, 181);
+        Color text = Color.WHITE;
+
+        getContentPane().setBackground(bg);
+
+        JLabel title = new JLabel("Study Tracker Dashboard", JLabel.CENTER);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        title.setForeground(text);
+        add(title, BorderLayout.NORTH);
+
+        JPanel main = new JPanel(new BorderLayout(15,15));
+        main.setBackground(bg);
+
+        JPanel form = new JPanel(new GridLayout(4,2,10,10));
+        form.setBackground(card);
+
+        JLabel l1 = new JLabel("Subject:");
+        l1.setForeground(text);
+        form.add(l1);
+
+        txtSubject = new JTextField();
+        form.add(txtSubject);
+
+        JLabel l2 = new JLabel("Duration:");
+        l2.setForeground(text);
+        form.add(l2);
+
+        txtDuration = new JTextField();
+        form.add(txtDuration);
+
+        JLabel l3 = new JLabel("Description:");
+        l3.setForeground(text);
+        form.add(l3);
+
+        txtDescription = new JTextArea();
+        form.add(new JScrollPane(txtDescription));
+
+        JButton btnAdd = new JButton("Add Log");
+        btnAdd.setBackground(primary);
+        form.add(btnAdd);
+
+        main.add(form, BorderLayout.NORTH);
+
+        model = new DefaultTableModel();
+        model.setColumnIdentifiers(new String[]{"Date","Subject","Duration","Description"});
+        table = new JTable(model);
+
+        main.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel();
+        bottom.setBackground(bg);
+
+        JButton btnView = new JButton("View Logs");
+        JButton btnExport = new JButton("Export CSV");
+
+        bottom.add(btnView);
+        bottom.add(btnExport);
+
+        main.add(bottom, BorderLayout.SOUTH);
+
+        add(main);
+
+        // Actions
+        btnAdd.addActionListener(e -> {
+            tracker.InsertLog(
+                    txtSubject.getText(),
+                    Double.parseDouble(txtDuration.getText()),
+                    txtDescription.getText()
+            );
+            JOptionPane.showMessageDialog(this, "Added!");
+        });
+
+        btnView.addActionListener(e -> {
+            model.setRowCount(0);
+            for(Study_Log s : tracker.Database)
+            {
+                model.addRow(new Object[]{s.getDate(), s.getSubject(), s.getDuration(), s.getDescription()});
+            }
+        });
+
+        btnExport.addActionListener(e -> {
+            tracker.Export_CSV();
+            JOptionPane.showMessageDialog(this, "Exported!");
+        });
+    }
+}
+
+// ================= MAIN CLASS =================
+public class StudyTrackerApplication
+{
+    public static void main(String args[])
     {
         Scanner sobj = new Scanner(System.in);
         Study_Tracker stobj = new Study_Tracker();
-        System.out.println("----------------------------------------------------------");
-        System.out.println("-----------Welcome to Study Tracker Application-----------");
-        System.out.println("----------------------------------------------------------");
 
-        int iCHOICE = 0;
-        do
+        System.out.println("1. CLI Mode");
+        System.out.println("2. GUI Mode");
+
+        int choice = sobj.nextInt();
+        sobj.nextLine(); // fix input bug
+
+        if(choice == 1)
         {
-            System.out.println("Please select appropriate option : ");
-            System.out.println(" 1 : Insert new study log");
-            System.out.println(" 2 : View all study logs");
-            System.out.println(" 3 : Export study log to CSV file");
-            System.out.println(" 4 : Summary of study log by date");
-            System.out.println(" 5 : Summary of study log by subject");
-            System.out.println(" 6 : Exit the application");
-
-
-            iCHOICE = sobj.nextInt();
-
-            switch(iCHOICE)
+            int iCHOICE = 0;
+            do
             {
-                //Insert new study log
-                case 1 : 
-                    stobj.InsertLog();
-                    break;
+                System.out.println("\n1 Insert | 2 View | 3 Export | 4 Date Summary | 5 Subject Summary | 6 Exit");
+                iCHOICE = sobj.nextInt();
+                sobj.nextLine();
 
-                //View all study logs
-                case 2 :
-                    stobj.DisplayLog();
-                    break;
-                
-                //Export study log to CSV file
-                case 3 :
-                    stobj.Export_CSV();
-                    break;
+                switch(iCHOICE)
+                {
+                    case 1: stobj.InsertLog(); break;
+                    case 2: stobj.DisplayLog(); break;
+                    case 3: stobj.Export_CSV(); break;
+                    case 4: stobj.SummaryByDate(); break;
+                    case 5: stobj.SummaryBySubject(); break;
+                    case 6: System.out.println("Thank you!"); break;
+                    default: System.out.println("Invalid choice");
+                }
 
-                //Summary of study log by date
-                case 4 :
-                    stobj.SummaryByDate();
-                    break;
-
-                //Summary of study log by subject
-                case 5 :
-                    stobj.SummaryBySubject();
-                    break;
-
-                //exit the application
-                case 6 :
-                    System.out.println("----------------------------------------------------------");
-                    System.out.println("-------Thankyou For using Study Tracker Application-------");
-                    System.out.println("----------------------------------------------------------");
-                    break;
-                    
-                default:
-                    System.out.println("Please enter valid option");
-                    break;
-
-            }
-            
-
-        }while(iCHOICE != 6 ); //end of do while
-        
-
-
-    }//end of main
-}//end of starter class
+            } while(iCHOICE != 6);
+        }
+        else
+        {
+            SwingUtilities.invokeLater(() -> new StudyTrackerGUI(stobj).setVisible(true));
+        }
+    }
+}
