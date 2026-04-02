@@ -139,7 +139,7 @@ class Study_Tracker
     }
 }
 
-// ================= GUI CLASS (UNCHANGED LOOK) =================
+// ================= GUI CLASS =================
 class StudyTrackerGUI extends JFrame
 {
     private JTextField txtSubject, txtDuration;
@@ -273,12 +273,24 @@ public class StudyTrackerApplication
 
                 switch(iCHOICE)
                 {
-                    case 1: stobj.InsertLog(); break;
-                    case 2: stobj.DisplayLog(); break;
-                    case 3: stobj.Export_CSV(); break;
-                    case 4: stobj.SummaryByDate(); break;
-                    case 5: stobj.SummaryBySubject(); break;
-                    case 6: System.out.println("Thank you!"); break;
+                    case 1: stobj.InsertLog();
+                    break;
+                        
+                    case 2: stobj.DisplayLog();
+                    break;
+                        
+                    case 3: stobj.Export_CSV();
+                    break;
+                        
+                    case 4: stobj.SummaryByDate();
+                    break;
+                        
+                    case 5: stobj.SummaryBySubject();
+                    break;
+                        
+                    case 6: System.out.println("Thank you!");
+                    break;
+                        
                     default: System.out.println("Invalid choice");
                 }
 
